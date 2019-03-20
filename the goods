@@ -9,7 +9,9 @@ import java.util.Scanner;
 public class SpellerV1 {
     
     public String[] dictionary = new String[235886];
+    public static int recursiveSteps, totalSteps, averageCorrectSteps, averageIncorrectSteps, correctSteps, incorrectSteps;
     
+    //the following loads the dictionary into an array
     public void dictionary(){
         try{
         File dictionaryIn = new File("dictionary.txt");
@@ -25,6 +27,7 @@ public class SpellerV1 {
         }//catch
     }//dictionary
     
+   //the following will take the original oliver file, and replace all of the punctuation with " " 
     public void oliverClean(){
         try{
         File oliverIn = new File("oliver.txt");
@@ -44,6 +47,7 @@ public class SpellerV1 {
         }//catch
     }//oliverClean
     
+    //the following will repopulate an array with the now punctuation-free oliver file :)
     public void oliver(){
         try{
         File oliver = new File("oliverclean.txt");
@@ -58,31 +62,31 @@ public class SpellerV1 {
             oliverTxt[i] = input.next().toLowerCase();
             i++;
         }//while
+        //this loop will take each of the entries of the oliver array, and compare it with the dictionary
             for (int j = 0; j <  oliverTxt.length; j++) {
                 if(oliverSearch(dictionary, oliverTxt[j]) == -1){
-                    if(oliverTxt[j].endsWith("s")){
-                        StringBuilder build = new StringBuilder(oliverTxt[j]);
-                        build.deleteCharAt(build.length()-1);
-                        oliverTxt[j] = build.toString();
-                        oliverSearch(dictionary, oliverTxt[j]);
+                    if(oliverTxt[j].endsWith("s")){//if the incorrect word ends with an S
+                        StringBuilder build = new StringBuilder(oliverTxt[j]);//a strinbuilder will be made of that particular entry
+                        build.deleteCharAt(build.length()-1);//the last character is removed
+                        oliverTxt[j] = build.toString();//the original place of the array is replaced with the altered word
+                        oliverSearch(dictionary, oliverTxt[j]);//the search is run again
                     }
-                    wrongTxt[k] = oliverTxt[j];
+                    wrongTxt[k] = oliverTxt[j];//the arry for the wrong words is set to be the specific position of the incorrect word
                     wrong++;
                     k++;
+                    
                     }else{
                     count++;
                 }//if
             }//for
             System.out.println("There is a total of " + count + " correctly spelled words");
             System.out.println("There is a total of " + wrong + " incorrectly spelled words");
-            System.out.print("The incorrect words are ");
-            for (int j = 0; j < wrong; j++) {
-                
-                System.out.print(wrongTxt[j] + " ");
-                if(j %10 ==0)
-                    System.out.println("");
-            }//for
-            System.out.println("");
+            
+            averageCorrectSteps = totalSteps / correctSteps;
+            averageIncorrectSteps = totalSteps / incorrectSteps;
+            System.out.println("The total number of steps taken is: " + totalSteps);
+            System.out.println("The average number of steps taken for each correct solution is: " + averageCorrectSteps);
+            System.out.println("The average number of steps take for each incorrect solution is: " + averageIncorrectSteps);
         }//try
         catch(Exception e){
             System.out.println("Error: " + e);
@@ -97,26 +101,38 @@ public class SpellerV1 {
 
   private static int oliverSearch(String[] list, String key,
       int low, int high) {
+      totalSteps++;
       
-    if (low > high)  // The list has been exhausted without a match
+    if (low > high){  // The list has been exhausted without a match
+        incorrectSteps++;
         return -1;
-    
+    }//if
 
     int mid = (low + high) / 2;
-    if (list[mid].compareTo(key) > 0)
-      return oliverSearch(list, key, low, mid - 1);
-    else if (list[mid].compareTo(key) == 0)
-      return mid;
-    else
-      return oliverSearch(list, key, mid + 1, high);
-  }
+    if (list[mid].compareTo(key) > 0){//if the size of the word is greater than the middle position
+        incorrectSteps++;
+        correctSteps++;
+      return oliverSearch(list, key, low, mid - 1);//the method is run again, truncating the higher portion of the list
+    
+    }else if (list[mid].compareTo(key) == 0){//if the word is found
+        correctSteps++;
+        return mid;
+    }else{
+        incorrectSteps++;
+        correctSteps++;
+      return oliverSearch(list, key, mid + 1, high);//if both previous fail, the list will be rerun, truncating the lower portion
+  }//else
+  }//oliverSearch    
 
 
     public static void main(String[] args) {
         SpellerV1 ans = new SpellerV1();
+        long startTime = System.nanoTime();
         ans.dictionary();
         ans.oliverClean();
         ans.oliver();
+        long stopTime = System.nanoTime() - startTime;
+        System.out.printf("The total runtime is: + %3.10f \n", (stopTime / Math.pow(10,9)) );
     }
     
 }
